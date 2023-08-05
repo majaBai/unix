@@ -1,3 +1,12 @@
+/*
+增加重定向符号的支持
+
+> 叫做重定向符号
+/tmp/write.axe > /tmp/write.output
+
+实现方法就是 execve 前关闭 1 再打开要输出的文件
+这样要输出的文件的 fd 就是 1 了
+*/
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -64,7 +73,7 @@ int main(int argc, char **argv, char **envp) {
             printf("enter child %d\n", pid);
             // 改变stdout指向 out 文件
             close(1);
-            int fd = open(path, O_WRONLY | O_TRUNC);
+            int fd = open(path, O_WRONLY | O_TRUNC); // 表示写入时先清空文件内容
             if (fd == -1) {
                 perror("child open");
                 return 1;
