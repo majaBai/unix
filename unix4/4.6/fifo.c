@@ -48,8 +48,7 @@ close(0) 关闭了 stdin -> 将 fd 文件指针变为标准输入 ->
 read.axe 会从 stdin 也就是 fd 指向的文件中读取（此时读取的内容正是子进程写入文件的内容）
 */
 int
-main(int argc, char **argv, char **envp) {
-    printf("fifo:参数 %s, env：%s\n", argv[0], envp[0]);
+main(void) {
     // 下面演示了用 fifo 实现管道
     // 虽然你能在文件系统中看到一个 /tmp/axe.fifo 文件
     // 但实际上它是没有内容的，只是一个虚拟文件
@@ -61,11 +60,10 @@ main(int argc, char **argv, char **envp) {
     mkfifo(path, 0777);
 
     pid_t pid = fork();
-    /*
-    
-    */
     if (pid == 0) {
         /*
+         小测试：这是子进程还是父进程？
+
          这个进程先关掉标准输出 1
          这样 open 打开的 fd 就是 1 了
 
@@ -83,7 +81,7 @@ main(int argc, char **argv, char **envp) {
 
          这是个奇特的设计，但是已经广泛使用了
         */
-        close(1); //关闭了标准输出
+        close(1);
         int fd = open(path, O_WRONLY);
         // 这里 fprintf(stderr 是 c 的库函数，相当于 write(2，因为我们 close(1) 了所以往 2 里面写才能显示出来
         fprintf(stderr, "[child FD] %d\n", fd);
@@ -92,7 +90,7 @@ main(int argc, char **argv, char **envp) {
             "/bin/date",
             NULL
         };
-        
+
         execve(argv[0], argv, environ);
     } else {
         // 需要先把 read.c 编译为 /tmp/read.axe 这里才能运行到
@@ -102,7 +100,7 @@ main(int argc, char **argv, char **envp) {
         // 这样 /tmp/read.axe 从 0 里面读就是从 fd 里面读
         // 和上面一样
         close(0);
-        int fd = open(path, O_RDONLY); 
+        int fd = open(path, O_RDONLY);
         printf("[parent FD] %d\n", fd);
 
 //        char *argv[] = {
@@ -117,7 +115,7 @@ main(int argc, char **argv, char **envp) {
         argv[0] = path;
         argv[1] = NULL;
 
-        execve(argv[0], argv, envp);
+        execve(argv[0], argv, environ);
     }
 
     return 0;
