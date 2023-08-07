@@ -13,23 +13,19 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-char *fail = "null";
 
+// 查找指令完整路径，找不到默认在当前目录，直接返回指令本身
 char*
-getFullPath(const char *cmd){
-    if(strlen(cmd) < 1) {
-        return fail;
-    }
+getFullPath(char *cmd){
     char *path_env = getenv("PATH");
     char path[1024];
     char *dir;
     if (path_env == NULL) {
         printf("Environment variable PATH not found.\n");
-        return fail;
+        return cmd;
     }
     strncpy(path, path_env, sizeof(path));
     dir = strtok(path, ":");
-    // char full_path[1024];
     char *full_path=  malloc(sizeof(char) * 1024);
     int found = 0;
     while(dir != NULL) {
@@ -43,30 +39,10 @@ getFullPath(const char *cmd){
         dir = strtok(NULL, ":");
     }
 
-    return found? full_path : fail;
+    return found? full_path : cmd;
 }
-void
-exe1(const char *cmd, char *const envp[]){
-    char *full_path = getFullPath(cmd);
-    execve(full_path, (char *const[]){ (char *)cmd, NULL}, envp);
-    perror("execve");
-}
-void
-readFrom(char *path) {
-    int fd = open(path, O_RDONLY);
-    if (fd == -1) {
-        perror("readFrom open");
-    }
-    const int size = 100;
-    char buffer[size];
-    ssize_t n = read(fd, buffer, size);
-    if(n == -1) {
-        perror("read");
-    }
-    buffer[n] = 0;
-    fprintf(stderr, "[结果]: %s, %zd字节\n", buffer, n);
-    close(fd);
-}
+
+
 char *
 cmdFromStdin() {
     int max_len = 256;
@@ -81,7 +57,7 @@ cmdFromStdin() {
         i++;
     }
     command[i] = '\0';
-    printf("cmd: %s %zd字节\n", command, strlen(command));
+    printf("收到cmd: %s %zd字节\n", command, strlen(command));
     return command;
 }
 
@@ -107,6 +83,40 @@ str_sub(char* str, int start, int end){
     res[len] = '\0';
     return res;
 }
+
+char*
+str_trim(char *str) {
+    int len = strlen(str);
+    char *res = malloc(sizeof(char) * (len + 1));
+    // 找到开头的空白停止位置
+    int i = 0;
+    while( i < len) {
+        if(str[i] != ' ') {
+            break;
+        }
+        i++;
+    }
+    if(i == len) {
+        // 说明全是空格
+        char *emp = "";
+        res = emp;
+        return res;
+    }
+    // 找到结尾的空白停止位置
+    int j = len - 1;
+    while(j >= 0) {
+        if(str[j] != ' '){
+            break;
+        }
+        j--;
+    }
+   
+    char *sub = str_sub(str, i, j);
+    strcpy(res, sub);
+    return res;
+}
+
+
 
 char**
 str_split(char* str, char* del) {
@@ -137,7 +147,37 @@ str_split(char* str, char* del) {
     }
     return res;
 }
-int main(int argc, char **argv, char **envp) {
+
+
+/*
+char *c1 = "/bin/date";
+char *c2 = "/tmp/read.axe"; 
+char *cmd[] = {c1, c2};
+
+/bin/ls|/tmp/read.axe
+*/
+void
+exe1(char *cmd, char *const envp[]){
+    // 指令是否带参数，比如 ls /
+    char **cmdAndArgs;
+    char *del = " ";
+    if(str_index(cmd, del) > -1) {
+        cmdAndArgs = str_split(cmd, del);
+    } else {
+        cmdAndArgs[0] = cmd;
+        cmdAndArgs[1] = NULL;
+    }
+
+    // 指令完整路径
+    char *full_path = getFullPath(cmdAndArgs[0]);
+
+    // char *args[] = {cmd, "/", NULL}; 
+    char *args[] = {cmdAndArgs[0], cmdAndArgs[1], NULL };
+    fprintf(stderr, "path: %s   cmd: %s   args: %s\n",full_path, cmdAndArgs[0], cmdAndArgs[1]);
+    execve(full_path, args, envp);
+    perror("execve");
+}
+int main(int argc, char **argv, const char **envp) {
     char * pipe = "/tmp/axe.fifo";
     mkfifo(pipe, 0777);
 
@@ -150,24 +190,24 @@ int main(int argc, char **argv, char **envp) {
             break;
         }
         char **cmd = str_split(command, del);
-        // char *c1 = "/bin/date";
-        // char *c2 = "/tmp/read.axe"; 
-        // char *cmd[] = {c1, c2};
-        // /bin/ls|/tmp/read.axe
-        printf("cmd0: %s \ncmd1: %s\n", cmd[0], cmd[1]);
+        // 去掉空格
+        char *cmd1 = str_trim(cmd[0]);
+        char *cmd2 = str_trim(cmd[1]);
+        printf("cmd1: %s \ncmd2: %s\n", cmd1, cmd2);
+
         pid_t pid1 = fork();
         if(pid1 == 0) {
             close(1);
             int fd = open(pipe, O_WRONLY);
             char *argv[] = {"",NULL};
-            execve(cmd[0], argv, envp);
+            exe1(cmd1, (char *const *)envp);
         } else {
             pid_t pid2 = fork();
             if(pid2 == 0) {
                 close(0);
                 int fd = open(pipe, O_RDONLY);
                 char *argv[] = {"",NULL};
-                execve(cmd[1], argv, envp);
+                exe1(cmd2, (char *const *)envp);
             }
         }
     }

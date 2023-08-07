@@ -91,6 +91,39 @@ exe1(const char *cmd, char *const envp[]){
     return -1;
 }
 
+char*
+str_trim(char *str) {
+    int len = strlen(str);
+    char *res = malloc(sizeof(char) * (len + 1));
+    // 找到开头的空白停止位置
+    int i = 0;
+    while( i < len) {
+        if(str[i] != ' ') {
+            break;
+        }
+        i++;
+    }
+    if(i == len) {
+        // 说明全是空格
+        char *emp = "";
+        res = emp;
+        return res;
+    }
+    // 找到结尾的空白停止位置
+    int j = len - 1;
+    while(j >= 0) {
+        if(str[j] != ' '){
+            break;
+        }
+        j--;
+    }
+   
+    char *sub = str_sub(str, i, j);
+    strcpy(res, sub);
+    return res;
+}
+
+
 int main(int argc, const char **argv,const char **envp){
     // char *str = "abcd-123";
     // int i = str_index(str, '1');
@@ -106,9 +139,23 @@ int main(int argc, const char **argv,const char **envp){
     //     printf("%d : %s \n", length, res[length]);
     //     length++;
     // }
-    char *program = "ls";
-    char *args[] = {program, "/", NULL};  // Arguments: "ls", "/", NULL
 
-    execve("/bin/ls", args, NULL);
+    // char *program = "ls";
+    // char *args[] = {program, "/", NULL};  // Arguments: "ls", "/", NULL
+
+    // execve("/bin/ls", args, NULL);
+
+    char *s1 = " ab ";
+    char *s2 = "   abc";
+    char *s3 = "abcd   ";
+    char *s4 = "  abcde  ";
+    char *s5 = "full";
+    char *s6 = "    ";
+
+    char* t[6] = {s1, s2, s3, s4, s5, s6};
+    for(int i = 0; i < sizeof(t); i ++){
+        char *res = str_trim(t[i]);
+        printf("i: %d %s\n", i, res);
+    }
     return -1;
 }
