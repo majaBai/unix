@@ -1,3 +1,12 @@
+/*
+增加重定向符号的支持
+
+> 叫做重定向符号
+/tmp/write.axe > /tmp/write.output
+
+实现方法就是 execve 前关闭 1 再打开要输出的文件
+这样要输出的文件的 fd 就是 1 了
+*/
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -41,8 +50,7 @@ getFullPath(char cmd[11]){
 }
 
 int main(int argc, char **argv, char **envp) {
-    char * path = "/tmp/axe.fifo";
-    mkfifo(path, 0777);
+    char *path = "out.txt";
 
     while(1) {
         int max_len = 10;
@@ -57,18 +65,15 @@ int main(int argc, char **argv, char **envp) {
             i++;
         }
         command[i] = '\0';
-
-        
-
         printf("cmd: %s %zd字节\n", command, strlen(command));
         char *cmd_p = getFullPath(command);
         
         pid_t pid = fork();
         if (pid == 0) {
             printf("enter child %d\n", pid);
-            //改变 stdout
+            // 改变stdout指向 out 文件
             close(1);
-            int fd = open(path, O_WRONLY);
+            int fd = open(path, O_WRONLY | O_TRUNC); // 表示写入时先清空文件内容
             if (fd == -1) {
                 perror("child open");
                 return 1;
@@ -77,9 +82,13 @@ int main(int argc, char **argv, char **envp) {
             char *argv[] = {"",NULL};
             execve(cmd_p, argv, (char *const *)envp);
         }else{
-            printf("enter father. childpid=%d\n", pid);
-            //直接打开管道读结果,不要改变stdin
-            // close(0)
+            printf("enter father, childpid=%d\n", pid);
+            //等待当前子程序结束
+            int status;
+            pid_t child_to_exit = wait(&status);
+            fprintf(stderr, "wait childpid %d : status=%d\n", child_to_exit, status);
+
+            // 然后再读文件内容
             int fd = open(path, O_RDONLY);
             if (fd == -1) {
                 perror("father open");
@@ -93,13 +102,7 @@ int main(int argc, char **argv, char **envp) {
                 return 1;
             }
             buffer[n] = 0;
-            printf("[read]: %zd字节 %s\n", n, buffer);
-
-            //等待当前子程序结束
-            int status;
-            pid_t child_to_exit = wait(&status);
-            printf("wait childpid %d : status=%d\n", child_to_exit, status);
-
+            fprintf(stderr, "[结果]: %s, %zd字节\n", buffer, n);
             close(fd);
         }
     }

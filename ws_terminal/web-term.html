@@ -1,0 +1,68 @@
+<html>
+<head>
+	
+</head>
+
+<body>
+	<div id="header">
+		<h1 align="left">ws terminal</h1>
+		<input type="text" id="id-input" placeholder="ENTER to send">
+
+		<textarea id="id-textview" rows="50" cols="80"></textarea>
+	</div>
+<script>
+
+
+__main()
+
+
+function __main() {
+	// 连接 ws
+	let input = document.querySelector('#id-input')
+
+
+	let ws = openWs()
+
+
+	function actionSendMessage() {
+		// \r 是用户输入的回车 也要发出去的
+		let cmd = input.value + '\r'
+		ws.send(cmd)
+
+		input.value = ""
+	}
+
+	input.addEventListener('keyup', function(e)	{
+		var key = e.keyCode
+		if (key == 13) {
+			actionSendMessage()
+		}
+	})
+}
+
+
+function openWs() {
+	let addr = 'ws://localhost:23333'
+
+	let ws = new WebSocket(addr)
+
+	ws.onopen = function() {
+
+	}
+
+	let textView = document.querySelector('#id-textview')
+
+	ws.onmessage = function (event) {
+		textView.value += event.data
+	}
+
+	ws.onclose = function(event) {
+		textView.value += '连接关闭'
+	}
+
+	return ws
+}
+
+</script>	
+</body>
+</html>

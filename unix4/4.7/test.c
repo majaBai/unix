@@ -128,11 +128,12 @@ str_find(char* str, char *c){
     int i = 0;
     int c_len = strlen(c);
     while(i < strlen(str)) {
-        char* sb_s = str_sub(str, i, i + c_len - 1);
-        if(strcmp(sb_s, c)){
+        int end = (i + c_len - 1) > (strlen(str) - 1) ? strlen(str) - 1 : i + c_len - 1;
+        char* sb_s = str_sub(str, i, end );
+        if(strcmp(sb_s, c) == 0){
             return i;
         }
-        i += c_len;
+        i += 1;
     }
     return -1;
 }
@@ -173,9 +174,18 @@ int main(int argc, const char **argv,const char **envp){
     //     printf("i: %d %s\n", i, res);
     // }
 
-    char *str = "date >> out.axe";
-    char *c = ">";
-    int res = str_find(str, c);
-    printf("%d \n", res);
+    // char *str = "date >> out.axe";
+    // char *c = "out";
+    // int res = str_find(str, c);
+    // printf("%d \n", res);
+
+    char *del = "|";
+    if (strcmp(del, "|") == 0)
+    {
+       printf("equal");
+    } else {
+        printf("not equal");
+    }
+    
     return -1;
 }

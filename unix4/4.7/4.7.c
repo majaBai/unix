@@ -6,7 +6,10 @@
 
 实现方法就是 execve 前关闭 1 再打开要输出的文件
 这样要输出的文件的 fd 就是 1 了
+
+编译： cc 4.7.c ./lib/m_str.c  -Ilib  -o 4.7.o
 */
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -17,23 +20,24 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-char *fail = "null";
+/*
+编译时指定头文件目录： -I lib 或者 -Ilib
+*/
+#include "m_str.h"
 
+// 查找指令完整路径，找不到默认在当前目录，直接返回指令本身
 char*
-getFullPath(char cmd[11]){
-    if(strlen(cmd) < 1) {
-        return fail;
-    }
+getFullPath(char *cmd){
     char *path_env = getenv("PATH");
     char path[1024];
     char *dir;
     if (path_env == NULL) {
         printf("Environment variable PATH not found.\n");
-        return fail;
+        return cmd;
     }
     strncpy(path, path_env, sizeof(path));
     dir = strtok(path, ":");
-    char full_path[1024];
+    char *full_path=  malloc(sizeof(char) * 1024);
     int found = 0;
     while(dir != NULL) {
         char temp[1024];
@@ -46,64 +50,136 @@ getFullPath(char cmd[11]){
         dir = strtok(NULL, ":");
     }
 
-    return found? full_path : fail;
+    if (found) {
+        return full_path;
+    } else {
+        // 说明 cmd 是当前文件夹下程序，比如/tmp/read.axe
+        // 这种需要变成 ./tmp/read.axe 才能被执行
+        if(cmd[0] == '.') {
+            return cmd;
+        } else {
+            char *point = ".";
+            return str_cat(point, cmd);
+        }
+    }
 }
 
-int main(int argc, char **argv, char **envp) {
-    char *path = "out.txt";
 
-    while(1) {
-        int max_len = 10;
-        char command[max_len + 1];
-        int i = 0;
-        char c;
-        while(i < max_len && read(0, &c, 1) == 1) {
-            if(c == '\n'){
-                break;
-            }
-            command[i] = c;
-            i++;
+char *
+cmdFromStdin() {
+    int max_len = 256;
+    char *command = malloc(sizeof(char) * (max_len + 1));
+    int i = 0;
+    char c;
+    while(i < max_len && read(0, &c, 1) == 1) {
+        if(c == '\n'){
+            break;
         }
-        command[i] = '\0';
-        printf("cmd: %s %zd字节\n", command, strlen(command));
-        char *cmd_p = getFullPath(command);
-        
-        pid_t pid = fork();
-        if (pid == 0) {
-            printf("enter child %d\n", pid);
-            // 改变stdout指向 out 文件
+        command[i] = c;
+        i++;
+    }
+    command[i] = '\0';
+    printf("收到cmd: %s %zd字节\n", command, strlen(command));
+    return command;
+}
+
+
+void
+exe1(char *cmd, char *const envp[]){
+    // 指令是否带参数，比如 ls /
+    char **cmdAndArgs;
+    char *del = " ";
+    if(str_find(cmd, del) > -1) {
+        cmdAndArgs = str_split(cmd, del);
+    } else {
+        cmdAndArgs[0] = cmd;
+        cmdAndArgs[1] = NULL;
+    }
+
+    // 指令完整路径
+    char *full_path = getFullPath(cmdAndArgs[0]);
+
+    // char *args[] = {cmd, "/", NULL}; 
+    char *args[] = {cmdAndArgs[0], cmdAndArgs[1], NULL };
+    fprintf(stderr, "path: %s   cmd: %s   args: %s\n",full_path, cmdAndArgs[0], cmdAndArgs[1]);
+    execve(full_path, args, envp);
+    perror("execve");
+}
+char*
+hasdel(char* cmd) {
+    char *res = "noDel";
+    char *del1 = "|";
+    char *del2 = ">";
+    if(str_find(cmd, del1) > 0) {
+        return del1;
+    }
+    if(str_find(cmd, del2) > 0){
+        return del2;
+    }
+    return res;
+}
+void
+exeWithDel(char* command, char* del, const char **envp) {
+    /*
+    目前能处理的带分隔符的指令包括：
+    管道： date | /tmp/read.o
+    重定向：date > /out.txt
+    */
+    char **cmd = str_split(command, del);
+    // 去掉空格
+    char *cmd1 = str_trim(cmd[0]);
+    char *cmd2 = str_trim(cmd[1]);
+
+    printf("cmd1: %s \ncmd2: %s\n", cmd1, cmd2);
+
+    if(strcmp(del, "|") == 0) {
+        char * pipe = "/tmp/axe.fifo";
+        mkfifo(pipe, 0777);
+
+        pid_t pid1 = fork();
+        if(pid1 == 0) {
             close(1);
-            int fd = open(path, O_WRONLY | O_TRUNC); // 表示写入时先清空文件内容
-            if (fd == -1) {
-                perror("child open");
-                return 1;
-            }
-
+            int fd = open(pipe, O_WRONLY);
             char *argv[] = {"",NULL};
-            execve(cmd_p, argv, (char *const *)envp);
-        }else{
-            printf("enter father, childpid=%d\n", pid);
-            //等待当前子程序结束
-            int status;
-            pid_t child_to_exit = wait(&status);
-            fprintf(stderr, "wait childpid %d : status=%d\n", child_to_exit, status);
+            exe1(cmd1, (char *const *)envp);
+        } else {
+            pid_t pid2 = fork();
+            if(pid2 == 0) {
+                close(0);
+                int fd = open(pipe, O_RDONLY);
+                char *argv[] = {"",NULL};
+                exe1(cmd2, (char *const *)envp);
+            }
+        }
+    } else if (strcmp(del, ">") == 0) {
+        pid_t pid1 = fork();
+        if(pid1 == 0) {
+            close(1);
+            int fd = open(cmd2, O_WRONLY);
+            char *argv[] = {"",NULL};
+            exe1(cmd1, (char *const *)envp);
+        }
+    }
+}
+int main(int argc, char **argv, const char **envp) {
 
-            // 然后再读文件内容
-            int fd = open(path, O_RDONLY);
-            if (fd == -1) {
-                perror("father open");
-                return 1;
+    char *end = "exit";
+    char *noDel = "noDel";
+    while(1) {
+        char *command = cmdFromStdin();
+        if(strcmp(command, end) == 0 || command[0] == '\0') {
+            printf("程序结束");
+            break;
+        }
+        char *del = hasdel(command);
+        if(strcmp(del, noDel) == 0) {
+            // 没有 delimeter 直接执行
+            pid_t pid1 = fork();
+            if(pid1 == 0) {
+                exe1(str_trim(command), (char *const *)envp);
             }
-            const int size = 100;
-            char buffer[size];
-            ssize_t n = read(fd, buffer, size);
-            if(n == -1) {
-                perror("read");
-                return 1;
-            }
-            buffer[n] = 0;
-            fprintf(stderr, "[结果]: %s, %zd字节\n", buffer, n);
-            close(fd);
+        } else {
+            exeWithDel(command, del, envp);
         }
     }
     return 0;

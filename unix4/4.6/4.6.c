@@ -14,33 +14,6 @@
 #include <sys/wait.h>
 
 
-// 查找指令完整路径，找不到默认在当前目录，直接返回指令本身
-char*
-getFullPath(char *cmd){
-    char *path_env = getenv("PATH");
-    char path[1024];
-    char *dir;
-    if (path_env == NULL) {
-        printf("Environment variable PATH not found.\n");
-        return cmd;
-    }
-    strncpy(path, path_env, sizeof(path));
-    dir = strtok(path, ":");
-    char *full_path=  malloc(sizeof(char) * 1024);
-    int found = 0;
-    while(dir != NULL) {
-        char temp[1024];
-        snprintf(temp, sizeof(temp), "%s/%s", dir, cmd);
-        if(access(temp, X_OK) == 0) {
-            strcpy(full_path, temp);
-            found =1;
-            break;
-        }
-        dir = strtok(NULL, ":");
-    }
-
-    return found? full_path : cmd;
-}
 
 
 char *
@@ -82,6 +55,33 @@ str_sub(char* str, int start, int end){
     }
     res[len] = '\0';
     return res;
+}
+char *
+str_cat(char *s1, char *s2) {
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+
+    // 拼接后的新字符串 s3 的长度要多 1 个用于放末尾的 '\0'
+    int len3 = len1 + len2 + 1;
+    char *s3 = malloc(sizeof(char) * len3);
+
+    // 循环把 s1 里的字符都复制到 s3 中
+    for (int i = 0; i < len1; i++) {
+        *(s3 + i) = *(s1 + i);
+        // 也可以写为 s3[i] = s1[i]
+    }
+
+    // 循环把 s1 里的字符都复制到 s3 后面
+    for (int i = 0; i < len2; i++) {
+        *(s3 + i + len1) = *(s2 + i);
+        // 也可以写为 s3[i+len1] = s2[i]
+    }
+
+    // 最后一位要设置为 '\0' 才是一个合格的字符串
+    *(s3 + len3 - 1) = '\0';
+    // 也可以写为 s3[len3-1] = '\0'
+
+    return s3;
 }
 
 char*
@@ -147,6 +147,45 @@ str_split(char* str, char* del) {
     }
     return res;
 }
+// 查找指令完整路径，找不到默认在当前目录，直接返回指令本身
+char*
+getFullPath(char *cmd){
+    char *path_env = getenv("PATH");
+    char path[1024];
+    char *dir;
+    if (path_env == NULL) {
+        printf("Environment variable PATH not found.\n");
+        return cmd;
+    }
+    strncpy(path, path_env, sizeof(path));
+    dir = strtok(path, ":");
+    char *full_path=  malloc(sizeof(char) * 1024);
+    int found = 0;
+    while(dir != NULL) {
+        char temp[1024];
+        snprintf(temp, sizeof(temp), "%s/%s", dir, cmd);
+        if(access(temp, X_OK) == 0) {
+            strcpy(full_path, temp);
+            found =1;
+            break;
+        }
+        dir = strtok(NULL, ":");
+    }
+
+    if (found) {
+        return full_path;
+    } else {
+        // 说明 cmd 是当前文件夹下程序，比如/tmp/read.axe
+        // 这种需要变成 ./tmp/read.axe 才能被执行
+        if(cmd[0] == '.') {
+            return cmd;
+        } else {
+            char *point = ".";
+            return str_cat(point, cmd);
+        }
+    }
+}
+
 
 
 /*
