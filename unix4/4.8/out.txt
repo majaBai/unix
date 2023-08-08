@@ -1,14 +1,8 @@
-
-2023年 08月 05日 星期六 11:44:11 CST
-
+2023年 08月 08日 星期二 18:00:22 CST
 4.8.c
 4.8.o
+4.8_old.c
+lib
 out.txt
-
-/home/maja/unix_w/unix/unix4/4.8
-
-2023年 08月 05日 星期六 11:54:05 CST
-
-2023年 08月 05日 星期六 11:56:02 CST
-
-/home/maja/unix_w/unix/unix4/4.8
+test.c
+test.o
