@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+extern char **environ;
+
 void
 fileControl(void) {
     /*
@@ -58,7 +60,7 @@ fileControl(void) {
     printf("fd fcntl dup %d\n", fd1);
     // 100 和 1 是等价的
     // 所以 write 100 和 write 1 是一样的
-    write(100, "100 write\n", 10);
+    write(100, "100 writ\n", 9);
 
     // 下面调用后， fd2 就被复制为 1 了
     // fd2 在这里应该是 3
@@ -148,27 +150,75 @@ pipe2(void) {
         write(1, buffer, len);
         write(1, "\n", 1);
     } else {
-        write(fileIds[1], "AXE", len);
+        write(fileIds[1], "AXE", len); 
     }
 }
 
 
+char *pipe_p;
+int fileIds[2];
+/*
+用匿名管道 pipe 实现命名管道
+*/
 void
 my_mkfifo(char* p, int mode){
-    int fd = open(p, O_RDWR | O_CREAT);
-    pipe(fd);
-    printf("my_mkfifo FD (%d), (%d)", fd[0], fd[1]);
+    pipe_p = p;
+    pipe(fileIds);
+    printf("my fifo: %d %d \n", fileIds[0], fileIds[1]);
 }
 
+int
+my_open(char* path, int flags) {
+    if (strcmp(path, pipe_p) == 0) {
+        // 打开的是pipe
+        if(flags == O_RDONLY) {
+            int fd1 = fcntl(fileIds[0], F_DUPFD, STDIN_FILENO); 
+            fprintf(stderr, "fcntl read: %d %d \n", fileIds[0], fd1);
+            return fd1;
+        } else if(flags == O_WRONLY){
+            // 将程序输出变成pipe的写入端
+            int fd1 = fcntl(fileIds[1], F_DUPFD, STDOUT_FILENO);
+            fprintf(stderr, "fcntl write %d %d \n",fileIds[1], fd1);
+            return fd1;
+        }
+    } else {
+        // 普通打开，调用系统的 open() 函数
+        return open(path, flags);
+    }
+}
 int
 main() {
     // fileControl();
     // pipe1();
     // pipe2();
+    // char *path = "/tmp/axe.fifo";
+    // my_mkfifo(path, 0777);
 
-    char * path = "axe.fifo";
-    my_mkfifo(path, 777);
+    int fileIds[2];
+    pipe(fileIds);
+    printf("my fifo: %d %d \n", fileIds[0], fileIds[1]);
 
+    pid_t pid = fork();
+    if (pid == 0){
+        close(1);
+        // int fd = my_open(path, O_WRONLY);
+        int fd = fcntl(fileIds[1], F_DUPFD, STDOUT_FILENO);
+        fprintf(stderr, "[child FD] %d\n", fd);
+        char *argv[] = {
+            "/bin/date",
+            NULL};
+        execve(argv[0], argv, environ);
+    } else {
+        close(0);
+        // int fd = my_open(path, O_RDONLY);
+        int fd = fcntl(fileIds[0], F_DUPFD, STDIN_FILENO); 
+        printf("[parent FD] %d\n", fd);
+        char **argv = malloc(sizeof(char *) * 2);
+        char *path = "/tmp/read.axe";
+        argv[0] = path;
+        argv[1] = NULL;
+        execve(argv[0], argv, environ);
+    }
     return 0;
 }
 
