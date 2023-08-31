@@ -1,8 +1,12 @@
 {
     "files.associations": {
         "*.ejs": "html",
+        "*.cjson": "jsonc",
+        "*.wxss": "css",
+        "*.wxs": "javascript",
         "stdio.h": "c",
         "types.h": "c",
-        "dlfcn.h": "c"
+        "dlfcn.h": "c",
+        "stdarg.h": "c"
     }
 }
