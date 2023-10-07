@@ -7,6 +7,10 @@
         "stdio.h": "c",
         "types.h": "c",
         "dlfcn.h": "c",
-        "stdarg.h": "c"
+        "stdarg.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "alist.h": "c"
     }
 }
