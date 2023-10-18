@@ -97,3 +97,30 @@ main(void) {
     return 0;
 }
 
+
+
+
+ int *p; // 一个指针指向 int/一个 int 类型的指针
+    int **p; // 一个指针指向 int*/ 一个 int* 类型的指针/一个int指针类型的指针/
+    int ***p; // 一个指针指向 int**
+
+    char v;
+    char *p; // sizeof(p) == 8; sizeof(*p) == 1; sizeof(p[0]) == 1
+    char **pp; // sizeof(pp) == 8; sizeof(*pp) == 8; sizeof(**pp) == 1;
+    char ***ppp; // sizeof(ppp) == 8; sizeof(*ppp) == 8; sizeof(**ppp) == 8; sizeof(***ppp) == 1;
+    p = &v;
+    pp = &p;
+    ppp = &pp;
+
+    int *a = (int*)malloc(sizeof(int) * 4); // 4元素数组
+    a[3] = 1;
+    
+    int **matrix = (int**)malloc(sizeof(int*) * 4);  // 4元素矩阵
+    matrix[0] = (int*)malloc(sizeof(int) * 4); // 第1行
+    matrix[1] = (int*)malloc(sizeof(int) * 4); // 第2行
+    matrix[2] = (int*)malloc(sizeof(int) * 4); // 第3行
+    matrix[3] = (int*)malloc(sizeof(int) * 4); // 第4行
+    matrix[0][0] = 0;
+    matrix[0][1] = 0;
+    matrix[3][3] = 15;
+
