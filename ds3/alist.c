@@ -2,19 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "alist.h"
 
 ANode *
-ANode_new(void * val, int valType){
+ANode_new(void * val){
     ANode *n = malloc(sizeof(ANode));
-    n->dataType = valType;
-    if(valType == 0) {
-        n->data.n = *(int*)val;
-    } else {
-        n->data.strVal = (char*)val;
-    }
-
+    n->value = val;
     n->next = NULL;
 
     return n;
@@ -23,138 +18,131 @@ ANode_new(void * val, int valType){
 AList *
 AList_new(void) {
     AList *list = malloc(sizeof(AList));
-    list->len = 0;
-    list->head = NULL;
+    list->size = 0;
+    list->first = NULL;
     return list;
+}
+long
+AList_length(AList *array) {
+    return array->size;
 }
 // 添加元素在末尾
 //  void * 万能指针，可以指向任何数据类型
 void
 AList_add(AList *array, void *element) {
-    ANode *newNode = (ANode *)element;
-    ANode *cur = array->head;
+    ANode *n = malloc(sizeof(ANode));
+    (*n) = (ANode) {
+        .value = element,
+        .next = NULL,
+    };
 
     // 第1次添加
-    if(array->len == 0 ) {
-        array->head = newNode;
+    if(array->size == 0 ) {
+        array->first = n;
     } else {
+        ANode *cur = array->first;
         while(cur->next != NULL) {
           cur = cur->next;
         }
-        cur->next = newNode;
+        cur->next = n;
     }
-    array->len += 1;
+    array->size += 1;
 }
-
-void
-AList_print(AList *array) {
-    ANode *cur = array->head;
-    printf("----start----\n");
-    printf("len: %ld \n", array->len);
-    while(1) {
-        if(cur == NULL) {
-            printf("----end--- \n");
-            break;
-        }
-        if(cur->dataType == 0) {
-            printf("%d \n", cur->data.n);
-        } else {
-            printf("%s \n", cur->data.strVal);
-        }
-        cur = cur -> next;
-    }
-}
-
-long
-AList_length(AList *array) {
-    return array->len;
-}
-
 
 void *
 AList_get(AList *array, long index) {
-    ANode *res = malloc(sizeof(ANode));
-    ANode *cur = array->head;
-    long len = array->len;
-    long i = 0;
-    while (cur && i <= index)
-    {
-        if(i == index) {
-            res = cur;
-            break;
-        }
-        i++;
-        // 等价于 cur = cur -> next
-        cur = (*cur).next;
+    assert(index < array->size);
+
+    ANode *res = array->first;
+    for(int i = 0; i < index; i++) {
+        res = res->next;
     }
-    return res;
+    return res->value;
 }
 
-// 设置链表下标的值
-// t: 0 表示数字， 1 表示字符串
 void
-AList_set(AList *array, long index, void *element, int t){
-    ANode *cur = array->head;
-    long len = array->len;
-    long i = 0;
-    while(cur && i <= index) {
-        if(i == index) {
-            if(t == 0) {
-                cur->data.n = *(int*)element;
-                cur->dataType = 0;
-            } else {
-                cur->data.strVal = (char*)element;
-                cur->dataType = 1;
-            }
-            break;
+AList_insertAtIndex(AList *array, long index, void *element){
+    assert(index < array->size);
+
+    ANode *newNode = malloc(sizeof(ANode));
+    (*newNode) = (ANode){
+        .value = element,
+        .next =NULL,
+    };
+
+    if(index == 0) {
+        array->first = newNode;
+    } else {
+        ANode *cur = array->first;
+        for(int  i =0; i < index; i++) {
+            cur = cur->next;
         }
-        i++;
-        cur = (*cur).next;
+        ANode *next = cur->next;
+        cur->next = newNode;
+        newNode->next = next;
     }
+    array->size +=1;
+}
+// 设置链表下标的值
+void
+AList_set(AList *array, long index, void *element){
+    assert(index < array->size);
+    ANode * cur = array->first;
+    for(int i =0; i < index; i++) {
+        cur = cur->next;
+    }
+    cur->value = element;
 }
 
 void *
 AList_pop(AList *array) {
-    ANode *cur = array->head;
-    ANode *prev = NULL;
-    ANode *res = malloc(sizeof(ANode));
+    assert(array->size > 0);
 
-    if(array->len == 1) {
+    ANode *cur = array->first;
+    ANode *prev = NULL;
+
+    if(array->size == 1) {
         // 只有一个节点
-        res = cur;
+        void *value = cur->value;
         free(cur);
         cur=NULL;
 
-        array->len = 0;
-        array->head = NULL;
+        array->size = 0;
+        array->first = NULL;
 
-        return res;
+        return value;
     }
+
+    // prev 倒数第二个
+    // cur 最后一个
     while(cur->next) {
         prev = cur;
         cur = cur->next;
     }
     prev->next = NULL;
-    array->len -= 1;
+    array->size -= 1;
 
-    res = cur;
+    void * value = cur->value;
     free(cur);
     cur = NULL;
 
-    return res;
+    return value;
 }
 
 void
 AList_removeAtIndex(AList *array, long index) {
-    ANode *cur = array->head;
+    assert(index < array->size);
+
+    ANode *cur = array->first;
     ANode *prev = NULL;
+
     long i = 0;
-    while(i < array->len) {
+    while(i < array->size) {
         if(i == index) {
             if(i == 0) {
                 // 删除链表头
                 ANode * new_head = cur->next;
-                array->head = new_head;
+                array->first = new_head;
             } else {
                 ANode * next_node = cur->next;
                 prev->next = next_node;
@@ -164,10 +152,10 @@ AList_removeAtIndex(AList *array, long index) {
             free(cur);
             cur = NULL;
 
-            array->len -= 1;
-
+            array->size -= 1;
             break;
         }
+
         prev = cur;
         cur = cur->next;
         i++;

@@ -42,6 +42,8 @@ AString_length(AString *s){
     return s->length;
 }
 
+
+// 半闭半开：[start: end)
 AString *
 AString_cut(AString *s, long start, long end){
     assert(start < s->length);

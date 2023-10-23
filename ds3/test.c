@@ -1,48 +1,116 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
 #include "alist.h"
+#include "anumber.h"
 
 void
 main() {
+    // ANumber *n1 = ANumber_newInt(123);
+    // printf("ANumber_intValue: %d \n", ANumber_intValue(n1));
+    // assert(ANumber_intValue(n1) == 123);
+
     AList *l = AList_new();
-
-
+    assert(AList_length(l) == 0);
     // add
-    // 下面写法等价
-    //  void * p1 = NULL;
-    // int val1 = 123;
-    // p1 = &val1;
-    // ANode *n1 = ANode_new(p1, 0);
-    int val1 = 123;
-    ANode *n1 = ANode_new(&val1, 0);
-    AList_add(l, n1);
+    {
+        printf("add \n");
+        ANumber *n = ANumber_newInt(12345);
+        AList_add(l, n);
+        {
+            ANumber *n = ANumber_newInt(23456);
+            AList_add(l, n);
+        }
+        {
+            ANumber *n = ANumber_newInt(34567);
+            AList_add(l, n);
+        }
+        {
+            ANumber *n = ANumber_newInt(45678);
+            AList_add(l, n);
+        }
+        printf("length add: %u \n", l->size);
+    }
 
-    void * p2 = "axe5-axe5-axe5-axe5-axe5-axe5";
-    ANode *n2 = ANode_new(p2, 1);
-    AList_add(l, n2);
+    {
+        // get
+        ANumber *n = AList_get(l, 0);
+        printf("get:  %d \n", ANumber_intValue(n));
+        assert(ANumber_intValue(n) == 12345);
+    }
+    {
+        //pop
+        ANumber *n = AList_pop(l);
+        printf("pop: %d \n", ANumber_intValue(n));
+        assert(ANumber_intValue(n) == 45678);
+        printf("length pop: %u \n", l->size);
+    }
 
-    int val3 = 567;
-    ANode *n3 = ANode_new(&val3, 0);
-    AList_add(l, n3);
+    {
+        // remove
+        printf("remove \n");
+        AList_removeAtIndex(l, 0);
+        ANumber *n = AList_get(l, 0);
+        assert(ANumber_intValue(n) == 23456);
+        printf("length after remove: %u \n", l->size);
+    }
 
-    AList_print(l);
+    {
+        // set insert
+        AList *a = AList_new();
+        {
+            ANumber *n = ANumber_newInt(1);
+            AList_add(a, n);
+        }
+        {
+            ANumber *n = ANumber_newInt(22);
+            AList_add(a, n);
+        }
+        {
+            ANumber *n = ANumber_newInt(333);
+            AList_add(a, n);
+        }
+        // [1, 22, 333]
+        printf("lengt after add: %u \n", a->size);
 
-    // set
-    void * val4 = "set_new_axe5";
-    int val5 = 888;
-    AList_set(l, 0, &val5, 0);
-    AList_set(l, 1, val4, 1);
-    AList_set(l, 2, val4, 1);
-    AList_print(l);
+        {
+            //set
+            printf("set \n");
+            {
+                ANumber *n = AList_get(a, 1);
+                assert(ANumber_intValue(n) == 22);
+            }
+            ANumber *n = ANumber_newInt(4444);
+            AList_set(a, 1, n);
+            {
+                ANumber *n = AList_get(a, 1);
+                assert(ANumber_intValue(n) == 4444);
+            }
+            // [1, 4444, 333]
+        }
 
-    // pop
-    // AList_pop(l);
-    // AList_print(l);
+        {
+            // insert
+            printf("insert \n");
+            {
+                ANumber *n = AList_get(a, 0);
+                assert(ANumber_intValue(n) == 1);
+            }
+            ANumber *n = ANumber_newInt(55);
+            AList_insertAtIndex(a, 0, n);
+            {
+                ANumber *n = AList_get(a, 0);
+                assert(ANumber_intValue(n) == 55);
+                printf("len after insert: %u \n", a->size);
+            }
+            // [55, 1, 4444, 333]
 
-    // remove at idx
-    AList_removeAtIndex(l, 0);
-    AList_print(l);
+        }
 
-    free(l);
+
+
+    }
+
 
 }

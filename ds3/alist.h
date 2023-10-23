@@ -2,30 +2,24 @@
 #include <stdlib.h>
 
 typedef struct _Node {
-    int dataType; // 0 int; 1 string
-    union
-    {
-        int n;
-        char* strVal;
-    } data;
+    void * value;
     struct _Node *next;
 } ANode;
 
 typedef struct _AList {
     // 内容自己定
-    long len;
-    ANode *head;
+    unsigned int size;
+    ANode *first;
 } AList;
 
 //flag 区分 dataType
 ANode *
-ANode_new(void * val, int valType);
+ANode_new(void * val);
 
 AList *
 AList_new(void);
 
-void
-AList_print(AList *array);
+
 
 // 返回链表长度
 long
@@ -37,7 +31,7 @@ AList_get(AList *array, long index);
 
 // 设置链表下标的值
 void
-AList_set(AList *array, long index, void *element,  int t);
+AList_set(AList *array, long index, void *element);
 
 // 添加元素在末尾
 void
