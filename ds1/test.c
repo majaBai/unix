@@ -36,10 +36,10 @@ stringCat(char *s1, char *s2) {
 void
 main() {
 
-    char *t1 = "012";
-    char *t2 = " 345";
+    // char *t1 = "012";
+    // char *t2 = " 345";
 
-    char *r = stringCat(t1, t2);
+    // char *r = stringCat(t1, t2);
     // printf("r %s, %ld \n", r, strlen(r));
    
 
@@ -54,10 +54,14 @@ main() {
     const char *s2 = "cdfq";
     const char *s3 = "cdf";
     const char *s4 = "f";
+    const char *s5 = "cdf";
+    const char *s6 = "ab";
     AString *str1  = AString_new(s1);
     AString *str2  = AString_new(s2);
     AString *str3  = AString_new(s3);
     AString *str4  = AString_new(s4);
+    AString *str5  = AString_new(s5);
+    AString *str6  = AString_new(s6);
 
     printf("****AString_charAt [0]**** : %c \n", AString_charAt(str1, 2));
     printf("****AString_charAt [ ]**** : %c \n", AString_charAt(str1, 3));
@@ -65,18 +69,23 @@ main() {
 
     //  printf("****AString_concat [cdff]***: %s \n", AString_concat(str3, str4)->data);
     //  printf("****AString_concat [cdfqcdf]***: %s \n", AString_concat(str2, str3)->data);
+    
     // printf("****AString_find [4]****: %ld \n", AString_find(str1, str3));
     // printf("****AString_find [2]****: %ld \n", AString_find(str2, str4));
+    // printf("****AString_find [-1]****: %ld \n", AString_find(str5, str6));
 
     // printf("****endsWith [false]****: %d \n", AString_endsWith(str1, str2));
     // printf("****endsWith [true]****: %d \n", AString_endsWith(str1, str3));
 
     // printf("str1: %s - %ld\n", str1->data, str1->length);
     // printf("length--: %ld \n", AString_length(str1));
-    // printf("****cut1****: %s \n", AString_cut(str1, 0, 3)->data);
-    // printf("****cut2****: %s \n", AString_cut(str1, 4,7)->data);
+
+    // printf("****cut1****[ab0]: %s \n", AString_cut(str1, 0, 3)->data);
+    // printf("****cut2****[cdf]: %s \n", AString_cut(str1, 4,7)->data);
+
     // printf("equals [false]--: %d \n", AString_equals(str1, str2));
-    // printf("equals [true]--: %d \n", AString_equals(str3, str2));
+    // printf("equals [true]--: %d \n", AString_equals(str3, str5));
+
     // printf("startsWith [true]--: %d \n", AString_startsWith(str2, str3));
     // printf("startsWith [false]--: %d \n", AString_startsWith(str1, str2));
     

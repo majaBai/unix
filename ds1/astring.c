@@ -3,31 +3,37 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <string.h>
+#include <assert.h>
 
-// typedef 可使用别名 AString
-// 在具体代码中，别名前面不用加 struct, 比如 sizeof(AString)， 而不必 sizeof(struct AString)
-typedef struct _AString{
-    long length;
-    char *data;
-} AString;
+#include "astring.h"
+
 
 AString *
 AString_new(const char *s) {
     AString *str = malloc(sizeof(AString));
+    unsigned long len = strlen(s);
+    char *data = malloc(len + 1);
+    strncpy(data, s, len);
+    data[len] = '\0'; // strncpy 不会复制末尾的 0
 
-    int i = 0;
-    while(s[i]) {
-        i++;
-    };
-    str->length = i;
+    str->length = len;
+    str->data = data;
+    // int i = 0;
+    // while(s[i]) {
+    //     i++;
+    // };
+    // str->length = i;
 
-    str->data = malloc(i + 1);
-    int j = 0;
-    while(j < str->length) {
-       str->data[j] = s[j];
-        j++;
-    }
-     str->data[j] = '\0';
+    // 自己手动复制
+    // str->data = malloc(i + 1);
+    // int j = 0;
+    // while(j < str->length) {
+    //    str->data[j] = s[j];
+    //     j++;
+    // }
+    //  str->data[j] = '\0';
+
     return str;
 }
 
@@ -38,14 +44,19 @@ AString_length(AString *s){
 
 AString *
 AString_cut(AString *s, long start, long end){
-    char *data = s->data;
-    char *temp = malloc(end - start + 1);
-    long i = start;
-    while(i < end) {
-        temp[i - start] = data[i];
-        i++;
-    }
-    temp[i - start] = '\0';
+    assert(start < s->length);
+    assert(end <= s->length);
+
+
+    long len = end - start;
+    char *temp = malloc(len + 1);
+
+
+    //  data + start 妙啊
+    // strncpy 不包含 end
+    strncpy(temp, s->data + start, len);
+    temp[len] = '\0';
+
     AString *res = AString_new((const char*)temp);
 
     free(temp);
@@ -69,88 +80,77 @@ AString_equals(AString *s1, AString *s2){
 
 bool
 AString_startsWith(AString *s1, AString *s2){
+    // s1 必须大于等于 s2
     if(s2->length > s1->length) {
-        return AString_startsWith(s2, s1);
+        return false;
     }
-    AString *temp = AString_cut(s1, 0, s2->length);
-    bool b = AString_equals(s2, temp);
-
-    free(temp);
-    temp = NULL;
-    return b;
+    // 用 s2 长度遍历
+    for(int i = 0; i < s2->length; i++) {
+        if(s1->data[i] != s2->data[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool
 AString_endsWith(AString *s1, AString *s2){
+    // s1 长度不能小于 s2
     if(s2->length > s1->length) {
-        return AString_endsWith(s2, s1);
+        return false;
     }
 
-    AString *temp = AString_cut(s1, (s1->length - s2->length), s1->length);
-
-    bool b = AString_equals(temp, s2);
-
-    free(temp);
-    temp = NULL;
-
-    return b;
+    // 用 s2 长度反向遍历
+    for(int i = 0; i < s2->length; i++) {
+        int idx1 = s1->length - 1 - i;
+        int idx2 = s2->length - 1 - i;
+        if(s1->data[idx1] != s2->data[idx2]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 long
 AString_find(AString *s1, AString *s2){
     long len = s2->length;
-    int r = -1;
-    for(int i = 0; i < s1->length; i += 1){
-        long end = i + len >= s1->length ? s1->length : i + len;
-        AString *temp = AString_cut(s1, i, end);
-        if(AString_equals(temp, s2)) {
-            r = i;
-            free(temp);
-            temp = NULL;
-            break;
+
+    for(int i = 0 ; i < (s1->length - s2->length + 1); i++) {
+        bool found = true;
+        for(int j = 0; j < s2->length; j++) {
+            int idx1 = i + j;
+            int idx2 = j;
+            if(s1->data[idx1] != s2->data[idx2]) {
+                found = false;
+                break;
+            }
+            if(found == true) {
+                return i;
+            }
         }
-        free(temp);
-        temp = NULL;
     }
-    return r;
+    return -1;
+
 }
 
 AString *
 AString_concat(AString *s1, AString *s2){
     long total = s1->length + s2->length;
-    char *temp = malloc(total + 1);
-    int i = 0;
+    char *res = malloc(total + 1);
 
-    char *str1 = s1->data;
-    while(str1[i]){
-        temp[i] = str1[i];
-        i++;
-    }
+    // copy s1
+    strncpy(res, s1->data, s1->length);
+    // copy s2， 算好指针的位置
+    strncpy(res + s1->length, s2->data, s2->length);
 
-    free(str1);
-    str1 = NULL;
+    res[total] = '\n';
 
-    printf("concat s1: %s, i: %d \n", temp, i);
+    // 换个写法，不用 new
+    AString *as = malloc(sizeof(AString));
+    as->data = res;
+    as->length = total;
 
-    char *str2 = s2->data;
-    int j = 0;
-    while(str2[j]){
-        temp[i + j] = str2[j];
-        j++;
-    }
-    free(str2);
-    str2 = NULL;
-
-    temp[i + j] = '\0';
-
-    printf("concat s2: %s, j: %d \n", temp, j);
-
-    AString *res = AString_new((const char*)temp);
-
-    free(temp);
-    temp = NULL;
-
-    return res;
+    return as;
 }
 
 char

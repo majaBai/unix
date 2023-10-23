@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+// typedef 可使用别名 AString
+// 在具体代码中，别名前面不用加 struct, 比如 sizeof(AString)， 而不必 sizeof(struct AString)
 typedef struct _AString{
     long length;
     char *data;
