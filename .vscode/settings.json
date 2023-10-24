@@ -13,6 +13,7 @@
         "string_view": "c",
         "alist.h": "c",
         "anumber.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "amap1.h": "c"
     }
 }
