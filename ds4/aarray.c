@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "aarray.h"
 
@@ -9,105 +10,105 @@
 // 创建新的 AArray
 AArray *AArray_new(void) {
     AArray *array = malloc(sizeof(AArray));
-    array->len = 0;
-    array->base = NULL;
+
+    unsigned int cap = 5;
+    array->capacity = cap;
+    array->data = malloc(cap);
+    array->length = 0;
+
     return array;
 }
 
 long
 AArray_length(AArray *array) {
-    
-    return array->len;
+    return array->length;
 }
 
 // 取出元素
 void *
 AArray_get(AArray *array, long index) {
-    if (index < 0 || index >= array->len) {
-        perror("下标越界");
-        return NULL; // 下标越界
-    }
-    return array->base[index];
+    assert(index < array->length);
+    return array->data[index];
 }
 
 // 添加元素在末尾
 void 
 AArray_add(AArray *array, void *element) {
-    // 增加len
-    array->len +=1;
-    // 扩容并拷贝旧数据到新内存中
-    void **newBase = (void**)malloc(sizeof(void*) * array->len);
-    memcpy(newBase, array->base, sizeof(void*) * (array->len - 1));
 
-    // 在末尾添加
-     newBase[array->len - 1] = element;
-    free(array->base); // Free the old base
-    array->base = newBase; 
+    // 先检查是否需要扩容
+    if(array->length == array->capacity) {
+        unsigned int cap = array->capacity * 2;
+        void **new_data = (void **)malloc(cap * sizeof(void *));
+        memcpy(new_data, array->data, sizeof(void*) * array->length);
+
+        free(array->data);
+        array->data = new_data;
+        array->capacity = cap;
+    }
+    array->data[array->length] = element;
+    array->length +=1;
+    // // 增加len
+    // array->len +=1;
+    // // 扩容并拷贝旧数据到新内存中
+    // void **newBase = (void**)malloc(sizeof(void*) * array->len);
+    // memcpy(newBase, array->base, sizeof(void*) * (array->len - 1));
+
+    // // 在末尾添加
+    //  newBase[array->len - 1] = element;
+    // free(array->base); // Free the old base
+    // array->base = newBase; 
 }
 
 void
 AArray_set(AArray *array, long index, void *element) {
-    array->base[index] = element;
+    array->data[index] = element;
 }
 
 void *
 AArray_pop(AArray *array) {
-    void * res = array->base[array->len - 1];
-    array->len -= 1;
+    assert(array->length > 0);
 
-    void **newBase = (void**)malloc(sizeof(void*) * array->len);
-    memcpy(newBase, array->base, sizeof(void*) * array->len);
-
-    free(array->base);
-    array->base = newBase;
-
-    return res;
+    void * element = array->data[array->length - 1];
+    array->length -= 1;
+    return element;
 }
 
 void
 AArray_destroy(AArray *array) {
-    free(array->base);
+    free(array->data);
     free(array);
     array = NULL;
 }
 
 void
 AArray_removeAtIndex(AArray *array, long index) {
-    void **newBase = (void**)malloc(sizeof(void*) * array->len - 1);
-    int found = 0;
-    for(long i = 0; i < array->len; i++)  {
-        if(i == index) {
-            found = 1;
-        } else {
-            if(found == 1) {
-              newBase[i -1] = array->base[i];
-            } else {
-              newBase[i] = array->base[i];
-            }
-        }
+    assert(index < array->length);
+
+    long lastIdx = array->length - 1;
+    long numOfMoves = lastIdx - index;
+    for(int i = 0; i < numOfMoves; i++) {
+        int idx1 = index + i;
+        int idx2 = index + i + 1;
+        array->data[idx1] = array->data[idx2];
     }
-    free(array->base);
-    array->base = newBase;
-    array->len -=1;
+    array->length -=1;
 }
 
 void
 AArray_insertAtIndex(AArray *array, long index, void *element) {
-    void **newBase = (void**)malloc(sizeof(void*) * array->len + 1);
-    int found = 0;
-    for(long i = 0; i < array->len + 1; i++)  {
-        if(i == index) {
-            found = 1;
-            newBase[i] = element;
-        } else {
-            if(found == 1) {
-              newBase[i] = array->base[i - 1];
-            } else {
-              newBase[i] = array->base[i];
-            }
-        }
+    assert(index <= array->length);
+   if(array->length == array->capacity) {
+        unsigned int cap = array->capacity * 2;
+        void **new_data = (void **)malloc(cap * sizeof(void *));
+        memcpy(new_data, array->data, sizeof(void*) * array->length);
+
+        free(array->data);
+        array->data = new_data;
+        array->capacity = cap;
     }
-    free(array->base);
-    array->base = newBase;
-    array->len +=1;
+    array->length +=1;
+    for(int i = array->length -1; i > index; i--) {
+        array->data[i] = array->data[i - 1];
+    }
+    array->data[index] = element;
 }

@@ -1,6 +1,7 @@
 typedef struct _AArray {
-    long len;
-    void **base;
+    unsigned int length;
+    unsigned int capacity;
+    void **data;
 } AArray;
 
 
