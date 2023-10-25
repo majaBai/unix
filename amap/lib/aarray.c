@@ -47,16 +47,6 @@ AArray_add(AArray *array, void *element) {
     }
     array->data[array->length] = element;
     array->length +=1;
-    // // 增加len
-    // array->len +=1;
-    // // 扩容并拷贝旧数据到新内存中
-    // void **newBase = (void**)malloc(sizeof(void*) * array->len);
-    // memcpy(newBase, array->base, sizeof(void*) * (array->len - 1));
-
-    // // 在末尾添加
-    //  newBase[array->len - 1] = element;
-    // free(array->base); // Free the old base
-    // array->base = newBase; 
 }
 
 void

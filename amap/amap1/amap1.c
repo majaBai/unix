@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "astring.h"
+#include "amap1.h"
+
 
 unsigned int
 _hash(AString *key) {

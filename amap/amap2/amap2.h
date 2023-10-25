@@ -1,10 +1,7 @@
-
-#include "astring.h"
-#include "aarray.h"
+#include "../lib/astring.h"
+#include "../lib/aarray.h"
 /*
-
 AMap 类里只有一个 data 数组
-
 
 AMap_set 的时候遍历 data 数组
     1. 如果 data 数组长度是 0  说明我们是第一次存入数据
@@ -15,15 +12,12 @@ AMap_set 的时候遍历 data 数组
         有了就覆盖 value
         没有就添加一个新的 kv
 
-
 AMap_get AMap_has 就遍历 data 数组
-
-
 目前这个类只实现了 hashtable 的接口，没有实现它的性能
 */
 
 typedef struct _AMap {
-    AArray **data;
+    AArray *data;
 } AMap;
 
 

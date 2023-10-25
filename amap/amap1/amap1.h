@@ -1,4 +1,4 @@
-#include "astring.h"
+#include "../lib/astring.h"
 /*
 返回一个 hash 值
 
