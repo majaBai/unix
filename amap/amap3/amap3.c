@@ -8,10 +8,9 @@
 AMap *
 AMap_new(void){
     AMap *m = malloc(sizeof(AMap));
-    m->data = AArray_new();
-    // for(int i = 0; i < 1; i++) {
-    //     m->data[i] = AArray_new();
-    // }
+    for(int i = 0; i < 1; i++) {
+        m->data[i] = AArray_new();
+    }
     return m;
 }
 void
