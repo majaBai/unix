@@ -16,6 +16,8 @@
         "stdlib.h": "c",
         "amap1.h": "c",
         "astring.h": "c",
-        "amap3.h": "c"
+        "amap3.h": "c",
+        "amap4.h": "c",
+        "aarray.h": "c"
     }
 }
