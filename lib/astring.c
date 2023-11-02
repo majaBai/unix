@@ -163,3 +163,10 @@ AString_charAt(AString *s, long index){
     return s->data[index];
 }
 
+void
+AString_destroy(AString *s){
+    free(s->data);
+    free(s);
+    s = NULL;
+}
+

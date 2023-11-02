@@ -13,6 +13,8 @@ words2.txt 是一个字典文件
 #include "../lib/aarray.h"
 #include "../lib/astring.h"
 
+// cc -g main.c ../lib/*.c  -Ilib && ./a.out
+// valgrind ./a.out 分析内存问题
 void
 main() {
     clock_t start,end;
@@ -21,7 +23,7 @@ main() {
 
     FILE *fp = fopen("./words2.txt", "r");
     AArray *arr = AArray_new();
-    char data[100] = {0};
+    char data[256] = {0};
 	while(!feof(fp))
 	{
 		fgets(data, sizeof(data), fp);
@@ -29,10 +31,16 @@ main() {
         AString * s = AString_new((const char *) data);
         AArray_add(arr, s);
 	}
-    // fclose(fp);
+    fclose(fp);
     printf("length: %lu \n", AArray_length(arr));
 
     end = clock();
     time_used = (double)(end-start)/CLOCKS_PER_SEC;
     printf("time: %f \n", time_used);
+
+    for(int i =0; i < AArray_length(arr); i++){
+        AString * s = AArray_get(arr, i);
+        AString_destroy(s);
+    }
+    AArray_destroy(arr);
 }

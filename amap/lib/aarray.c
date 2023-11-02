@@ -13,7 +13,7 @@ AArray *AArray_new(void) {
 
     unsigned int cap = 5;
     array->capacity = cap;
-    array->data = malloc(cap);
+    array->data = malloc(cap * sizeof(void *));
     array->length = 0;
 
     return array;
