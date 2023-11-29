@@ -9,6 +9,8 @@
 // #include "../lib/alist.h"
 
 // cc map.c ../lib/*.c test.c -Ilib && ./a.out
+
+// 优化 cc -O3  map.c ../lib/*.c test.c -Ilib && ./a.out
 void
 main() {
     int begin,end;
@@ -22,10 +24,10 @@ main() {
         exit(1);
     }
 
-    AArray *arr = AArray_new();
+    // AArray *arr = AArray_new();
     // AList * lt = AList_new();
 
-    // AMap * mp = AMap_new();
+    AMap * mp = AMap_new();
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
@@ -35,16 +37,16 @@ main() {
         count++;
         AString * s = AString_new(line);
         // printf("%f , %s\n", count, s->data);
-        AArray_add(arr, s);
+        // AArray_add(arr, s);
         // AList_add(lt, s);
         // AList_insertAtIndex(lt, 0, s);
-        // AMap_set(mp, s, NULL);
+        AMap_set(mp, s, NULL);
     }
 
     end=clock();
     printf("time= %f s\n",(float)(end-begin)/CLOCKS_PER_SEC);
 
-    printf("count= %f \narr len= %ld \n", count, AArray_length(arr));
+    // printf("count= %f \narr len= %ld \n", count, AArray_length(arr));
 
     // 关闭文件
     fclose(fp);
