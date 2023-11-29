@@ -18,6 +18,11 @@
         "astring.h": "c",
         "amap3.h": "c",
         "amap4.h": "c",
-        "aarray.h": "c"
+        "aarray.h": "c",
+        "deque": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "initializer_list": "c",
+        "time.h": "c"
     }
 }
