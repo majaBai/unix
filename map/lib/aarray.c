@@ -11,7 +11,7 @@
 AArray *AArray_new(void) {
     AArray *array = malloc(sizeof(AArray));
 
-    unsigned int cap = 10;
+    unsigned int cap = 5;
     array->capacity = cap;
     array->data = malloc(cap * sizeof(void *));
     array->length = 0;
@@ -28,9 +28,6 @@ AArray_length(AArray *array) {
 void *
 AArray_get(AArray *array, long index) {
     assert(index < array->length);
-    if(array->length > 100000){
-         printf("AArray_get= %lu\n", AArray_length(array));
-    }
     return array->data[index];
 }
 
@@ -40,7 +37,6 @@ AArray_add(AArray *array, void *element) {
 
     // 先检查是否需要扩容
     if(array->length == array->capacity) {
-        // printf("@@@AArray 数组扩容：%lu \n", array->capacity);
         unsigned int cap = array->capacity * 2;
         void **new_data = (void **)malloc(cap * sizeof(void *));
         memcpy(new_data, array->data, sizeof(void*) * array->length);
@@ -51,7 +47,6 @@ AArray_add(AArray *array, void *element) {
     }
     array->data[array->length] = element;
     array->length +=1;
-    // printf("@@@after add：%lu \n", array->length);
 }
 
 void

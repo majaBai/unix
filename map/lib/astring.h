@@ -33,3 +33,6 @@ AString_concat(AString *s1, AString *s2);
 
 char
 AString_charAt(AString *s, long index);
+
+void
+AString_destroy(AString *s);
