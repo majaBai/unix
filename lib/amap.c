@@ -3,15 +3,24 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "map.h"
+#include "amap.h"
+
+static unsigned int HASH_VAL = -1;
 
 unsigned int
 _hash(AString *key) {
-    unsigned int r = 0;
-    for(int i = 0; i < key->length; i++) {
-        r += key->data[i];
-    }
-    return r;
+    // 简陋直接 ascii 码相加
+    // unsigned int r = 0;
+    // for(int i = 0; i < key->length; i++) {
+    //     char c = AString_charAt(key, i);
+    //     r += c;
+    //     r *= 10;
+    // }
+    // return r;
+
+    //直接返回递增的值
+     HASH_VAL++;
+     return HASH_VAL;
 }
 AMap *
 Amap_newWithCap(int cap) {
@@ -20,7 +29,8 @@ Amap_newWithCap(int cap) {
     m->count = 0;
     m->data = malloc(sizeof(AArray *) * m->capacity);
     for(int i =0; i < m->capacity; i++) {
-        m->data[i] = AArray_new();
+        // m->data[i] = AArray_new();
+        m->data[i] = NULL;
     }
     return m;
 }
@@ -30,10 +40,13 @@ AMap_new(void){
 }
 void
 _rehash(AMap *m){
+    // printf("rehash--- \n");
    AMap *m1 = Amap_newWithCap(m->capacity * 2);
    for(int i = 0; i < m->capacity; i++) {
+    if(m->data[i] == NULL) {
+        continue;
+    }
     AArray *data = m->data[i];
-
     for(int j = 0; j < AArray_length(data); j++) {        
         AArray * kv = AArray_get(data, j);        
         AString *k = AArray_get(kv, 0);
@@ -53,6 +66,9 @@ AMap_set(AMap *m, AString *key, AString *value) {
         _rehash(m);
     }
      unsigned int idx = _hash(key) % (m->capacity);
+     if(m->data[idx] == NULL) {
+        m->data[idx] = AArray_new();
+     }
      AArray *data = m->data[idx]; 
      // 遍历是否key存在
      for(int i = 0; i < AArray_length(data); i++) {

@@ -6,6 +6,10 @@
 #include <time.h>
 
 #include "map.h"
+/*
+让 _hash 函数返回递增的下标，确保数据是平铺在 map 里的
+这样可以排除 _hash 的干扰，去找到别的瓶颈（最后再来优化 _hash）
+*/
 // #include "../lib/alist.h"
 
 // cc map.c ../lib/*.c test.c -Ilib && ./a.out
@@ -28,8 +32,8 @@ main() {
 
     // AArray *arr = AArray_new();
     // AList * lt = AList_new();
-    AMap * mp = AMap_new();
-    // AMap * mp = Amap_newWithCap(50 * 1000);
+    // AMap * mp = AMap_new();
+    AMap * mp = Amap_newWithCap(40 * 1000);
 
     char *line = NULL;
     size_t len = 0;
@@ -51,12 +55,14 @@ main() {
     // printf("count= %f \narr len= %ld \n", count, AArray_length(arr));
     
     // 看看 AMap 容量的占用情况
-    // 36万个数据集中分布在 2600 个槽中，而map的容量有5万个槽，说明 hash 函数严重冲突造成高度重叠
     {
         for(int i = 0; i < mp->capacity; i++) {
+            if(mp->data[i] == NULL) {
+                continue;
+            }
             AArray *d = mp->data[i];
             unsigned int len = AArray_length(d);
-            if(len > 100) {
+            if(len > 0) {
                 printf("%u \n",len);
             }
             
@@ -66,6 +72,6 @@ main() {
     // 关闭文件
     fclose(fp);
 
-    // AMap_destroy(mp);
+    AMap_destroy(mp);
     // AArray_destroy(arr);
 }

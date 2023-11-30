@@ -1,6 +1,6 @@
 
-#include "../lib/aarray.h"
-#include "../lib/astring.h"
+#include "aarray.h"
+#include "astring.h"
 
 /*
 默认的 map 实现会动态扩容，

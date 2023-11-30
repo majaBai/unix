@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "map.h"
+
 // #include "../lib/alist.h"
 
 // cc map.c ../lib/*.c test.c -Ilib && ./a.out
@@ -56,7 +57,7 @@ main() {
         for(int i = 0; i < mp->capacity; i++) {
             AArray *d = mp->data[i];
             unsigned int len = AArray_length(d);
-            if(len > 100) {
+            if(len > 0) {
                 printf("%u \n",len);
             }
             
@@ -66,6 +67,6 @@ main() {
     // 关闭文件
     fclose(fp);
 
-    // AMap_destroy(mp);
+    AMap_destroy(mp);
     // AArray_destroy(arr);
 }
