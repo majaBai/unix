@@ -43,7 +43,6 @@ main() {
     }
     fread(allFile, file_size, 1, fp); // 读取文件内容到内存中
     fclose(fp); // 关闭文件
-
     
     AMap * mp = Amap_newWithCap(40 * 10000);
     AString **allStr;
@@ -51,7 +50,6 @@ main() {
     for(int i = 0; i < 40 * 10000; i++) {
         allStr[i] = AString_new("");
     }
-
     int j = 0; // 一个单词的长度
     int count = 0;
     for(int i = 0; i < file_size;){

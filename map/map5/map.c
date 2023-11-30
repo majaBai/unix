@@ -8,23 +8,16 @@
 现在创建 map 的时候会让 data 里的每个元素都 AArray_new 一次
 可以改为默认它是 NULL，使用中按需创建
 */
-static unsigned int HASH_VAL = -1;
 
 unsigned int
 _hash(AString *key) {
-    // 简陋直接 ascii 码相加
-    // unsigned int r = 0;
-    // for(int i = 0; i < key->length; i++) {
-    //     char c = AString_charAt(key, i);
-    //     r += c;
-    //     r *= 10;
-    // }
-    // return r;
-
-    //直接返回递增的值
-    // 0.52s 降到 0.21s
-     HASH_VAL++;
-     return HASH_VAL;
+    unsigned int r = 0;
+    for(int i = 0; i < key->length; i++) {
+        char c = AString_charAt(key, i);
+        r += c;
+        r *= ((i + 1) * 10);
+    }
+    return r;
 }
 AMap *
 Amap_newWithCap(int cap) {

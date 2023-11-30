@@ -19,21 +19,6 @@ AString_new(const char *s) {
 
     str->length = len;
     str->data = data;
-    // int i = 0;
-    // while(s[i]) {
-    //     i++;
-    // };
-    // str->length = i;
-
-    // 自己手动复制
-    // str->data = malloc(i + 1);
-    // int j = 0;
-    // while(j < str->length) {
-    //    str->data[j] = s[j];
-    //     j++;
-    // }
-    //  str->data[j] = '\0';
-
     return str;
 }
 

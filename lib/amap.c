@@ -5,22 +5,16 @@
 
 #include "amap.h"
 
-static unsigned int HASH_VAL = -1;
 
 unsigned int
 _hash(AString *key) {
-    // 简陋直接 ascii 码相加
-    // unsigned int r = 0;
-    // for(int i = 0; i < key->length; i++) {
-    //     char c = AString_charAt(key, i);
-    //     r += c;
-    //     r *= 10;
-    // }
-    // return r;
-
-    //直接返回递增的值
-     HASH_VAL++;
-     return HASH_VAL;
+    unsigned int r = 0;
+    for(int i = 0; i < key->length; i++) {
+        char c = AString_charAt(key, i);
+        r += c;
+        r *= ((i + 1) * 10);
+    }
+    return r;
 }
 AMap *
 Amap_newWithCap(int cap) {
