@@ -43,49 +43,52 @@ main() {
     }
     fread(allFile, file_size, 1, fp); // 读取文件内容到内存中
     fclose(fp); // 关闭文件
-    
+
+    printf("读完文件\n");
     AMap * mp = Amap_newWithCap(40 * 10000);
-    AString **allStr;
-    allStr = (AString **)malloc(40 * 10000 * sizeof(AString *));
-    for(int i = 0; i < 40 * 10000; i++) {
-        allStr[i] = AString_new("");
-    }
-    int j = 0; // 一个单词的长度
+    AString **allStr = (AString **)malloc(40 * 10000 * sizeof(AString*));
+    
+    int curStr = 0;
+    allStr[curStr]->data = allFile;
+    allStr[curStr]->length = 0;
+
+
+    printf("申请40万内存，有问题\n");
     int count = 0;
-    for(int i = 0; i < file_size;){
-        if(allFile[i] == '\n') {
-            char *temp =  (char *)malloc(j + 1);
-            strncpy(temp, allFile + i - j, j);
-            temp[j] = '\0';
-            
-            // AString * s = AString_new(temp);
-            allStr[count]->data = temp;
-            AMap_set(mp, allStr[count], NULL);
-            j = 0;
+    for(char * p = allFile; *p != 0; p++) {
+        printf("循环\n");
+        if(*p == '\n'){
+            printf("单词\n");
+            *p = 0;
+            AMap_set(mp, allStr[curStr], NULL);
+            curStr++;
+            allStr[curStr]->data = p +1;
+            allStr[curStr]->length = 0;
             count++;
+        } else {
+            allStr[curStr]->length += 1;
         }
-        j++;
-        i++;
     }
 
     end=clock();
     printf("time= %f s\n",(float)(end-begin)/CLOCKS_PER_SEC);
     printf("count= %d\n",count);
 
+
     // 看看 AMap 容量的占用情况
-    {
-        for(int i = 0; i < mp->capacity; i++) {
-            if(mp->data[i] == NULL) {
-                continue;
-            }
-            AArray *d = mp->data[i];
-            unsigned int len = AArray_length(d);
-            if(len > 0) {
-                printf("%u \n",len);
-            }
+    // {
+    //     for(int i = 0; i < mp->capacity; i++) {
+    //         if(mp->data[i] == NULL) {
+    //             continue;
+    //         }
+    //         AArray *d = mp->data[i];
+    //         unsigned int len = AArray_length(d);
+    //         if(len > 0) {
+    //             printf("%u \n",len);
+    //         }
             
-        }
-    }
+    //     }
+    // }
 
     AMap_destroy(mp);
 }
