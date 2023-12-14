@@ -42,12 +42,12 @@ main(void) {
 
     
     // 往服务器端发数据
-    int i = 1;
-    while(i < 10) {
-        char *msg = "gua \n";
-        write(sock, msg, strlen(msg));
-        i += 1;
-    }
+    // int i = 1;
+    // while(i < 10) {
+    //     char *msg = "gua \n";
+    //     write(sock, msg, strlen(msg));
+    //     i += 1;
+    // }
 
     // 关闭socket
     close(sock);

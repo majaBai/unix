@@ -47,6 +47,8 @@ sleep 期间的时间，明明 cpu 资源有，但是却没办法处理，这是
 #include<unistd.h>
 #include<pthread.h>
 #include <time.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 
 
@@ -99,16 +101,21 @@ main(void) {
             char *msg = "HTTP/1.1 200\r\nContent-Type: text/plain\r\nConnection: close\r\nContent-Length: 2\r\n\r\nok";
             write(clientSocket, msg, strlen(msg));
             close(clientSocket);
+        } else {
+            int status;
+            waitpid(pid, &status, WUNTRACED);
+            if (WIFEXITED(status)) {
+                // 子进程正常结束
+                kill(pid, SIGINT);
+                // 响应一个请求后sleep
+                struct timespec time1;
+                time1.tv_sec = 1;
+                time1.tv_nsec = 200000000;
+                nanosleep(&time1, NULL);
+                // 关闭连接
+                close(clientSocket);
+            }
         }
-
-        // 响应一个请求后sleep
-        struct timespec time1;
-        time1.tv_sec = 1;
-        time1.tv_nsec = 200000000;
-        nanosleep(&time1, NULL);
-
-        // 关闭连接
-        close(clientSocket);
     }    
     return 0;
 }
